@@ -28,15 +28,16 @@ func StartServer(cfg *config.Configuration) {
 
 	for {
 		conn, err := ln.Accept()
-		if err != nil {
-			handleConnection(conn)
+		if err != nil && conn != nil {
+			//err handling
 		}
+		go handleConnection(conn)
 	}
 }
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
-	if conn != nil {
+	for {
 		message, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
 			fmt.Println("Connection closed. Error: ", err)
