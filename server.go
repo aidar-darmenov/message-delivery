@@ -2,50 +2,67 @@ package main
 
 import (
 	"bufio"
-	"fmt"
-	"github.com/aidar-darmenov/message-delivery/config"
-	"github.com/prometheus/common/log"
 	"net"
-	"strconv"
-	"strings"
+	"sync"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func main() {
+	var loggerConfig = zap.NewProductionConfig()
+	loggerConfig.Level.SetLevel(zap.DebugLevel)
 
-	cfg := config.NewConfiguration("config/config.json")
-
-	StartServer(cfg)
-}
-
-func StartServer(cfg *config.Configuration) {
-
-	log.Info("Launching server...")
-
-	ln, err := net.Listen(cfg.Type, ":"+strconv.Itoa(cfg.Port))
+	logger, err := loggerConfig.Build()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	for {
-		conn, err := ln.Accept()
-		if err != nil && conn != nil {
-			//err handling
-		}
-		go handleConnection(conn)
+	l, err := net.Listen("tcp", "localhost:8089")
+	if err != nil {
+		return
 	}
-}
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
+	defer l.Close()
+
+	// Using sync.Map to not deal with concurrency slice/map issues
+	var connMap = &sync.Map{}
+
 	for {
-		message, err := bufio.NewReader(conn).ReadString('\n')
+		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("Connection closed. Error: ", err)
-			conn.Close()
+			logger.Error("error accepting connection", zap.Error(err))
 			return
 		}
-		fmt.Print("Message Received:", string(message))
-		newmessage := strings.ToUpper(message)
-		conn.Write([]byte(newmessage + "\n"))
+
+		id := uuid.New().String()
+		connMap.Store(id, conn)
+
+		go handleUserConnection(id, conn, connMap, logger)
+	}
+}
+
+func handleUserConnection(id string, c net.Conn, connMap *sync.Map, logger *zap.Logger) {
+	defer func() {
+		c.Close()
+		connMap.Delete(id)
+	}()
+
+	for {
+		userInput, err := bufio.NewReader(c).ReadString('\n')
+		if err != nil {
+			logger.Error("error reading from client", zap.Error(err))
+			return
+		}
+
+		connMap.Range(func(key, value interface{}) bool {
+			if conn, ok := value.(net.Conn); ok {
+				if _, err := conn.Write([]byte(userInput)); err != nil {
+					logger.Error("error on writing to connection", zap.Error(err))
+				}
+			}
+
+			return true
+		})
 	}
 }
