@@ -2,12 +2,13 @@ package interfaces
 
 import (
 	"github.com/aidar-darmenov/message-delivery/config"
+	"github.com/aidar-darmenov/message-delivery/model"
 	"go.uber.org/zap"
-	"sync"
 )
 
 type Service interface {
 	GetLogger() *zap.Logger
+	GetClients() model.Clients
 	GetConfigParams() *config.Configuration
-	GetConnectedClientsIds() *sync.Map
+	SendMessageToClientsByIds(message model.MessageToClients) *model.Exception
 }

@@ -33,3 +33,7 @@ func (s *Service) GetLogger() *zap.Logger {
 func (s *Service) GetConfigParams() *config.Configuration {
 	return s.Configuration.Params()
 }
+
+func (s *Service) GetClients() model.Clients {
+	return s.Clients
+}
