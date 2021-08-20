@@ -1,5 +1,6 @@
 {
-  "Host": "localhost",
-  "Port": 8080,
-  "Type": "tcp"
+  "HttpPort": "8081",
+  "ListenerHost": "localhost",
+  "ListenerPort": 8089,
+  "ListenerType": "tcp"
 }
