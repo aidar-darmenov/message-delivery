@@ -3,13 +3,14 @@ package service
 import (
 	"github.com/aidar-darmenov/message-delivery/config"
 	"github.com/aidar-darmenov/message-delivery/interfaces"
+	"github.com/aidar-darmenov/message-delivery/model"
 	"go.uber.org/zap"
 	"sync"
 )
 
 type Service struct {
 	Configuration interfaces.Configuration
-	Clients       *sync.Map
+	Clients       model.Clients // Using sync.Map to store connected clients
 	Logger        *zap.Logger
 }
 
@@ -18,6 +19,10 @@ func NewService(cfg *config.Configuration, logger *zap.Logger) *Service {
 	return &Service{
 		Configuration: cfg,
 		Logger:        logger,
+		Clients: model.Clients{
+			Map: &sync.Map{},
+			Ids: nil,
+		},
 	}
 }
 

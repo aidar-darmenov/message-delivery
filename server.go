@@ -25,7 +25,7 @@ func main() {
 
 	// Creating abstract webService(delivery) layer
 	ws := webservice.NewWebService(s)
-	ws.Start()
+	go ws.Start()
 
 	s.StartTcpServer()
 }

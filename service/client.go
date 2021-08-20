@@ -2,6 +2,6 @@ package service
 
 import "sync"
 
-func (s *Service) GetConnectedClients() *sync.Map {
-	return s.Clients
+func (s *Service) GetConnectedClientsIds() *sync.Map {
+	return s.Clients.Map
 }

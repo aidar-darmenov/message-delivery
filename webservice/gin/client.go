@@ -1,7 +1,13 @@
 package gin
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
-func (ws *GinWebService) GetConnectedClients(c *gin.Context) {
-	c.JSON(200, ws.Service.GetConnectedClients)
+func (ws *GinWebService) GetConnectedClientsIds(c *gin.Context) {
+
+	fmt.Println(ws.Service.GetConnectedClientsIds())
+
+	c.JSON(200, "ok")
 }

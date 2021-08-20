@@ -14,7 +14,7 @@ func NewWebService(s interfaces.Service) interfaces.WebService {
 		Engine:  g,
 	}
 
-	g.GET("/clients/connected", ws.GetConnectedClients)
+	g.GET("/clients/connected", ws.GetConnectedClientsIds)
 
 	return ws
 }
