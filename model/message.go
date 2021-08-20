@@ -1,6 +1,6 @@
 package model
 
 type MessageToClients struct {
-	Ids  []string
-	Text string
+	Ids  []string `json:"ids"`
+	Text string   `json:"text"`
 }

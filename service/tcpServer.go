@@ -46,7 +46,7 @@ func (s *Service) HandleUserConnection(id string, c net.Conn) {
 
 		s.Clients.Map.Range(func(key interface{}, value interface{}) bool {
 			if conn, ok := value.(net.Conn); ok {
-				if _, err := conn.Write([]byte(userInput)); err != nil {
+				if err := s.SendMessageToClient(conn, userInput); err != nil {
 					s.Logger.Error("error on writing to connection", zap.Error(err))
 				}
 			}
