@@ -3,10 +3,9 @@ package main
 import (
 	"github.com/aidar-darmenov/message-delivery/config"
 	"github.com/aidar-darmenov/message-delivery/service"
-	"github.com/gin-gonic/gin"
+	"github.com/aidar-darmenov/message-delivery/webservice"
 	"go.uber.org/zap"
 	"log"
-	"strconv"
 )
 
 func main() {
@@ -21,12 +20,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Creating abstract service(business logic) layer
 	s := service.NewService(&cfg, logger)
 
-	g := gin.Default()
-
-	g.GET("/clients/connected/all", s.GetAllConnectedClients)
-
-	g.Run(":" + strconv.Itoa(cfg.Params().HttpPort))
-
+	// Creating abstract webService(delivery) layer
+	ws := webservice.NewWebService(s)
+	ws.Start()
 }

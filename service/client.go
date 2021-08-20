@@ -1,7 +1,7 @@
 package service
 
-import "github.com/gin-gonic/gin"
+import "sync"
 
-func (s *Service) GetAllConnectedClients(c *gin.Context) {
-
+func (s *Service) GetConnectedClients() sync.Map {
+	return sync.Map{}
 }

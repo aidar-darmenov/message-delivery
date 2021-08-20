@@ -19,6 +19,10 @@ func NewService(cfg *interfaces.Configuration, logger *zap.Logger) *Service {
 	}
 }
 
+func (s *Service) GetLogger() *zap.Logger {
+	return s.Logger
+}
+
 func (s *Service) GetConfigParams() *config.Configuration {
 	return s.Configuration.Params()
 }
