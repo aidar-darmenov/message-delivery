@@ -4,17 +4,19 @@ import (
 	"github.com/aidar-darmenov/message-delivery/config"
 	"github.com/aidar-darmenov/message-delivery/interfaces"
 	"go.uber.org/zap"
+	"sync"
 )
 
 type Service struct {
 	Configuration interfaces.Configuration
+	Clients       *sync.Map
 	Logger        *zap.Logger
 }
 
-func NewService(cfg *interfaces.Configuration, logger *zap.Logger) *Service {
+func NewService(cfg *config.Configuration, logger *zap.Logger) *Service {
 	//Here can be any other objects like DB, Cache, any kind of delivery services
 	return &Service{
-		Configuration: *cfg,
+		Configuration: cfg,
 		Logger:        logger,
 	}
 }

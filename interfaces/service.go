@@ -9,5 +9,5 @@ import (
 type Service interface {
 	GetLogger() *zap.Logger
 	GetConfigParams() *config.Configuration
-	GetConnectedClients() sync.Map
+	GetConnectedClients() *sync.Map
 }

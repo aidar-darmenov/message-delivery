@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func (s *Service) StartServer() {
+func (s *Service) StartTcpServer() {
 	l, err := net.Listen(s.GetConfigParams().ListenerType, s.GetConfigParams().ListenerHost+":"+strconv.Itoa(s.GetConfigParams().ListenerPort))
 	if err != nil {
 		return
@@ -30,14 +30,14 @@ func (s *Service) StartServer() {
 		id := uuid.New().String()
 		connMap.Store(id, conn)
 
-		go s.HandleUserConnection(id, conn, connMap)
+		go s.HandleUserConnection(id, conn)
 	}
 }
 
-func (s *Service) HandleUserConnection(id string, c net.Conn, connMap *sync.Map) {
+func (s *Service) HandleUserConnection(id string, c net.Conn) {
 	defer func() {
 		c.Close()
-		connMap.Delete(id)
+		s.Clients.Delete(id)
 	}()
 
 	for {
@@ -47,7 +47,7 @@ func (s *Service) HandleUserConnection(id string, c net.Conn, connMap *sync.Map)
 			return
 		}
 
-		connMap.Range(func(key, value interface{}) bool {
+		s.Clients.Range(func(key interface{}, value interface{}) bool {
 			if conn, ok := value.(net.Conn); ok {
 				if _, err := conn.Write([]byte(userInput)); err != nil {
 					s.Logger.Error("error on writing to connection", zap.Error(err))

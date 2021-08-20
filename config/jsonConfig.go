@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/aidar-darmenov/message-delivery/interfaces"
 	"log"
 	"os"
 )
@@ -15,7 +14,7 @@ type Configuration struct {
 }
 
 //NewConfiguration read file, return configuration
-func NewConfiguration(path string) interfaces.Configuration {
+func NewConfiguration(path string) *Configuration {
 	var configuration Configuration
 	configuration.InitConfigParams(path)
 	return &configuration

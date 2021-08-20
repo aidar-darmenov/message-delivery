@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	cfg := config.NewConfiguration("/config.config.json")
+	cfg := config.NewConfiguration("config/config.json")
 
 	var loggerConfig = zap.NewProductionConfig()
 	loggerConfig.Level.SetLevel(zap.DebugLevel)
@@ -21,9 +21,11 @@ func main() {
 	}
 
 	// Creating abstract service(business logic) layer
-	s := service.NewService(&cfg, logger)
+	s := service.NewService(cfg, logger)
 
 	// Creating abstract webService(delivery) layer
 	ws := webservice.NewWebService(s)
 	ws.Start()
+
+	s.StartTcpServer()
 }
