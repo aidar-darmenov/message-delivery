@@ -21,7 +21,6 @@ func NewConfiguration(path string) *Configuration {
 	return &configuration
 }
 
-//ReadFile Загрузка настроек из файла конфигураций
 func (c *Configuration) InitConfigParams(path string) {
 	file, err := os.Open(path)
 	if err != nil {

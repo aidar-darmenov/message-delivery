@@ -15,7 +15,7 @@ type Service struct {
 	ChannelMessages chan model.MessageToClients
 }
 
-func NewService(cfg *config.Configuration, logger *zap.Logger) *Service {
+func NewService(cfg *config.Configuration, logger *zap.Logger) interfaces.Service {
 	//Here can be any other objects like DB, Cache, any kind of delivery services
 
 	channelMessages := make(chan model.MessageToClients, cfg.ChannelMessagesSize)
