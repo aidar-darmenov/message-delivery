@@ -7,10 +7,11 @@ import (
 )
 
 type Configuration struct {
-	HttpPort     int
-	ListenerHost string
-	ListenerPort int
-	ListenerType string
+	HttpPort            int
+	ListenerHost        string
+	ListenerPort        int
+	ListenerType        string
+	ChannelMessagesSize int
 }
 
 //NewConfiguration read file, return configuration

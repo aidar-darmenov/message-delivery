@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"github.com/aidar-darmenov/message-delivery/model"
 	"go.uber.org/zap"
 	"net"
@@ -34,9 +33,6 @@ func (s *Service) SendMessageToClient(conn *net.TCPConn, message string) error {
 
 	binary.BigEndian.PutUint16(msg_len_data, uint16(len(data)))
 
-	fmt.Println("content length bytes: ", msg_len_data)
-	fmt.Println("content bytes: ", data)
-
 	buf.Write(msg_len_data)
 	buf.Write(data)
 
@@ -48,4 +44,19 @@ func (s *Service) SendMessageToClient(conn *net.TCPConn, message string) error {
 	buf.Reset()
 
 	return nil
+}
+
+func (s *Service) DeleteIdFromClientList(id string) bool {
+
+	for i := range s.Clients.Ids {
+		if s.Clients.Ids[i] == id {
+			s.Clients.Ids = append(s.Clients.Ids[:i], s.Clients.Ids[i+1:]...)
+		}
+	}
+
+	return true
+}
+
+func (s *Service) GetConnectedClientsIds() (ids []string) {
+	return s.Clients.Ids
 }

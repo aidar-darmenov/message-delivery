@@ -2,5 +2,6 @@
   "HttpPort": 8081,
   "ListenerHost": "localhost",
   "ListenerPort": 8089,
-  "ListenerType": "tcp"
+  "ListenerType": "tcp",
+  "ChannelMessagesSize": 50
 }

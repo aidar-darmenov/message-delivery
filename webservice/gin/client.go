@@ -6,7 +6,7 @@ import (
 )
 
 func (ws *GinWebService) GetConnectedClientsIds(c *gin.Context) {
-	c.JSON(200, ws.Service.GetClients().Ids)
+	c.JSON(200, ws.Service.GetConnectedClientsIds())
 }
 
 func (ws *GinWebService) SendMessageToClientsByIds(c *gin.Context) {

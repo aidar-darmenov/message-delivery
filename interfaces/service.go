@@ -11,4 +11,5 @@ type Service interface {
 	GetClients() model.Clients
 	GetConfigParams() *config.Configuration
 	SendMessageToClientsByIds(message model.MessageToClients) *model.Exception
+	GetConnectedClientsIds() (ids []string)
 }

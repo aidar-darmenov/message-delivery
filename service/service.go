@@ -9,13 +9,17 @@ import (
 )
 
 type Service struct {
-	Configuration interfaces.Configuration
-	Clients       model.Clients // Using sync.Map to store connected clients
-	Logger        *zap.Logger
+	Configuration   interfaces.Configuration
+	Clients         model.Clients // Using sync.Map to store connected clients
+	Logger          *zap.Logger
+	ChannelMessages chan model.MessageToClients
 }
 
 func NewService(cfg *config.Configuration, logger *zap.Logger) *Service {
 	//Here can be any other objects like DB, Cache, any kind of delivery services
+
+	channelMessages := make(chan model.MessageToClients, cfg.ChannelMessagesSize)
+
 	return &Service{
 		Configuration: cfg,
 		Logger:        logger,
@@ -23,6 +27,7 @@ func NewService(cfg *config.Configuration, logger *zap.Logger) *Service {
 			Map: &sync.Map{},
 			Ids: nil,
 		},
+		ChannelMessages: channelMessages,
 	}
 }
 

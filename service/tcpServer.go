@@ -1,8 +1,10 @@
 package service
 
 import (
-	"bufio"
-	"github.com/aidar-darmenov/message-delivery/helpers"
+	"encoding/binary"
+	"encoding/json"
+	"fmt"
+	"github.com/aidar-darmenov/message-delivery/model"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"log"
@@ -24,6 +26,8 @@ func (s *Service) StartTcpServer() {
 
 	defer l.Close()
 
+	go s.HandleOutgoingTraffic()
+
 	for {
 		conn, err := l.AcceptTCP()
 		if err != nil {
@@ -35,31 +39,84 @@ func (s *Service) StartTcpServer() {
 		s.Clients.Map.Store(id, conn)
 		s.Clients.Ids = append(s.Clients.Ids, id)
 
-		go s.HandleUserConnection(id, conn)
+		go s.HandleClients(id, conn)
 	}
 }
 
-func (s *Service) HandleUserConnection(id string, c *net.TCPConn) {
+func (s *Service) HandleClients(id string, conn *net.TCPConn) {
 	defer func() {
-		c.Close()
+		conn.Close()
 		s.Clients.Map.Delete(id)
-		helpers.DeleteIdFromClientList(s.Clients, id)
+		s.DeleteIdFromClientList(id)
 	}()
 
+	s.HandleIncomingTraffic(conn)
+}
+
+func (s *Service) HandleOutgoingTraffic() {
 	for {
-		userInput, err := bufio.NewReader(c).ReadString('\n')
-		if err != nil {
-			s.Logger.Error("error reading from client", zap.Error(err))
-			return
+		select {
+		case message := <-s.ChannelMessages:
+			s.SendMessageToClientsByIds(message)
+		}
+	}
+}
+
+func (s *Service) HandleIncomingTraffic(conn *net.TCPConn) {
+	for {
+		var buf [2048]byte
+		var contentLength int
+
+		// Reading content length
+		n, err := conn.Read(buf[:2])
+		e, ok := err.(net.Error)
+
+		if err != nil && ok && !e.Timeout() {
+			s.Logger.Error("Error reading content length from TCP connection", zap.Error(err))
+			break
 		}
 
-		s.Clients.Map.Range(func(key interface{}, value interface{}) bool {
-			if conn, ok := value.(*net.TCPConn); ok {
-				if err := s.SendMessageToClient(conn, userInput); err != nil {
-					s.Logger.Error("error on writing to connection", zap.Error(err))
-				}
+		if n > 0 {
+			contentLength = s.GetContentLength(buf[:n])
+		} else {
+			conn.Write([]byte("n<0"))
+		}
+
+		// Reading content
+		n, err = conn.Read(buf[:contentLength])
+		e, ok = err.(net.Error)
+
+		if err != nil && ok && !e.Timeout() {
+			s.Logger.Error("Error reading content from TCP connection", zap.Error(err))
+			break
+		}
+
+		var message model.MessageToClients
+
+		if n > 0 {
+			message, err = s.ProcessMessage(buf[:n])
+			if err != nil {
+				s.Logger.Error("Error processing message from TCP connection", zap.Error(err))
 			}
-			return true
-		})
+		} else {
+			conn.Write([]byte("n<0"))
+		}
+
+		s.ChannelMessages <- message
 	}
+}
+
+func (s *Service) GetContentLength(bufContentLength []byte) int {
+	cl := int(binary.BigEndian.Uint16(bufContentLength))
+	s.Logger.Info(fmt.Sprintf("content length: %d", cl))
+	return cl
+}
+
+func (s *Service) ProcessMessage(buf []byte) (message model.MessageToClients, err error) {
+	err = json.Unmarshal(buf, &message)
+	if err != nil {
+		return
+	}
+	s.Logger.Info(fmt.Sprintf("content: %v", message))
+	return
 }
