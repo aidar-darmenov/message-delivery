@@ -37,7 +37,9 @@ func (s *Service) StartTcpServer() {
 
 		id := uuid.New().String()
 		s.Clients.Map.Store(id, conn)
-		s.Clients.Ids = append(s.Clients.Ids, id)
+		s.Clients.Params = append(s.Clients.Params, model.ClientParams{
+			Id: id,
+		})
 
 		go s.HandleClients(id, conn)
 	}
@@ -50,6 +52,8 @@ func (s *Service) HandleClients(id string, conn *net.TCPConn) {
 		s.DeleteIdFromClientList(id)
 	}()
 
+	s.GetClientParams(conn, id)
+
 	s.HandleIncomingTraffic(conn)
 }
 
@@ -60,6 +64,66 @@ func (s *Service) HandleOutgoingTraffic() {
 			s.SendMessageToClientsByIds(message)
 		}
 	}
+}
+
+func (s *Service) GetClientParams(conn *net.TCPConn, id string) {
+	var buf [2048]byte
+	var contentLength int
+
+	// Reading content length
+	n, err := conn.Read(buf[:2])
+	e, ok := err.(net.Error)
+
+	if err != nil && ok && !e.Timeout() {
+		s.Logger.Error("Error reading client params length from TCP connection", zap.Error(err))
+		return
+	}
+
+	if n > 0 {
+		contentLength = s.GetContentLength(buf[:n])
+	} else {
+		conn.Write([]byte("n<0"))
+	}
+
+	// Reading content
+	n, err = conn.Read(buf[:contentLength])
+	e, ok = err.(net.Error)
+
+	if err != nil && ok && !e.Timeout() {
+		s.Logger.Error("Error reading client params from TCP connection", zap.Error(err))
+		return
+	}
+
+	var params model.ClientParams
+
+	if n > 0 {
+		params, err = s.ProcessParams(buf[:n])
+		if err != nil {
+			s.Logger.Error("Error processing client params from TCP connection", zap.Error(err))
+		}
+	} else {
+		conn.Write([]byte("n<0"))
+	}
+
+	// Saving params for client
+	for i := range s.Clients.Params {
+		if s.Clients.Params[i].Id == id {
+			s.Clients.Params[i] = model.ClientParams{
+				Id:       params.Id,
+				HttpPort: params.HttpPort,
+				Name:     params.Name,
+			}
+		}
+	}
+}
+
+func (s *Service) ProcessParams(buf []byte) (params model.ClientParams, err error) {
+	err = json.Unmarshal(buf, &params)
+	if err != nil {
+		return
+	}
+	s.Logger.Info(fmt.Sprintf("client params: %v", params))
+	return
 }
 
 func (s *Service) HandleIncomingTraffic(conn *net.TCPConn) {

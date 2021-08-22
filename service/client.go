@@ -48,9 +48,9 @@ func (s *Service) SendMessageToClient(conn *net.TCPConn, message string) error {
 
 func (s *Service) DeleteIdFromClientList(id string) bool {
 
-	for i := range s.Clients.Ids {
-		if s.Clients.Ids[i] == id {
-			s.Clients.Ids = append(s.Clients.Ids[:i], s.Clients.Ids[i+1:]...)
+	for i := range s.Clients.Params {
+		if s.Clients.Params[i].Id == id {
+			s.Clients.Params = append(s.Clients.Params[:i], s.Clients.Params[i+1:]...)
 		}
 	}
 
@@ -58,5 +58,8 @@ func (s *Service) DeleteIdFromClientList(id string) bool {
 }
 
 func (s *Service) GetConnectedClientsIds() (ids []string) {
-	return s.Clients.Ids
+	for i := range s.Clients.Params {
+		ids = append(ids, s.Clients.Params[i].Id)
+	}
+	return ids
 }
