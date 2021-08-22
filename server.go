@@ -1,51 +1,33 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"github.com/aidar-darmenov/message-delivery/config"
-	"github.com/prometheus/common/log"
-	"net"
-	"strconv"
-	"strings"
+	"github.com/aidar-darmenov/message-delivery/service"
+	"github.com/aidar-darmenov/message-delivery/webservice"
+	"go.uber.org/zap"
+	"log"
 )
 
 func main() {
 
 	cfg := config.NewConfiguration("config/config.json")
 
-	StartServer(cfg)
-}
+	// Used uber zap logger for simple example. Now it writes in console
+	// Usually, for this purposes we use logs sent to Kibana Elastic Search through Kafka
+	var loggerConfig = zap.NewProductionConfig()
+	loggerConfig.Level.SetLevel(zap.DebugLevel)
 
-func StartServer(cfg *config.Configuration) {
-
-	log.Info("Launching server...")
-
-	ln, err := net.Listen(cfg.Type, ":"+strconv.Itoa(cfg.Port))
+	logger, err := loggerConfig.Build()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for {
-		conn, err := ln.Accept()
-		if err != nil && conn != nil {
-			//err handling
-		}
-		go handleConnection(conn)
-	}
-}
+	// Creating abstract service(business logic) layer
+	s := service.NewService(cfg, logger)
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-	for {
-		message, err := bufio.NewReader(conn).ReadString('\n')
-		if err != nil {
-			fmt.Println("Connection closed. Error: ", err)
-			conn.Close()
-			return
-		}
-		fmt.Print("Message Received:", string(message))
-		newmessage := strings.ToUpper(message)
-		conn.Write([]byte(newmessage + "\n"))
-	}
+	// Creating abstract webService(delivery) layer
+	ws := webservice.NewWebService(s)
+	go ws.Start()
+
+	s.StartTcpServer()
 }
