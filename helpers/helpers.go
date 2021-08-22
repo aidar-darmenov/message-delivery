@@ -1,8 +1,10 @@
 package helpers
 
-import "github.com/aidar-darmenov/message-delivery/model"
+import (
+	"github.com/aidar-darmenov/message-delivery/model"
+)
 
-func DeleteIdFromClientList(clients model.Clients, id string) bool {
+func DeleteIdFromClientList(clients *model.Clients, id string) bool {
 
 	for i := range clients.Ids {
 		if clients.Ids[i] == id {
