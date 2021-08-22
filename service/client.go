@@ -47,17 +47,20 @@ func (s *Service) SendMessageToClient(conn *net.TCPConn, message string) error {
 }
 
 func (s *Service) DeleteIdFromClientList(id string) bool {
-
-	if len(s.Clients.Params) > 0 {
+	l := len(s.Clients.Params)
+	if l > 1 {
 		for i := range s.Clients.Params {
 			if s.Clients.Params[i].Id == id {
-				s.Clients.Params = append(s.Clients.Params[:i], s.Clients.Params[i+1:]...)
+				if l-1 == i {
+					s.Clients.Params = s.Clients.Params[:i]
+				} else {
+					s.Clients.Params = append(s.Clients.Params[:i], s.Clients.Params[i+1:]...)
+				}
 			}
 		}
 	} else {
 		s.Clients.Params = []model.ClientParams{}
 	}
-
 	return true
 }
 
