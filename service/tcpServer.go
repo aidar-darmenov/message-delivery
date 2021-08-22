@@ -2,14 +2,22 @@ package service
 
 import (
 	"bufio"
+	"github.com/aidar-darmenov/message-delivery/helpers"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"log"
 	"net"
 	"strconv"
 )
 
 func (s *Service) StartTcpServer() {
-	l, err := net.Listen(s.GetConfigParams().ListenerType, s.GetConfigParams().ListenerHost+":"+strconv.Itoa(s.GetConfigParams().ListenerPort))
+
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", net.JoinHostPort(s.Configuration.Params().ListenerHost, strconv.Itoa(s.Configuration.Params().ListenerPort)))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	l, err := net.ListenTCP(s.GetConfigParams().ListenerType, tcpAddr)
 	if err != nil {
 		return
 	}
@@ -17,7 +25,7 @@ func (s *Service) StartTcpServer() {
 	defer l.Close()
 
 	for {
-		conn, err := l.Accept()
+		conn, err := l.AcceptTCP()
 		if err != nil {
 			s.Logger.Error("error accepting connection", zap.Error(err))
 			return
@@ -31,10 +39,11 @@ func (s *Service) StartTcpServer() {
 	}
 }
 
-func (s *Service) HandleUserConnection(id string, c net.Conn) {
+func (s *Service) HandleUserConnection(id string, c *net.TCPConn) {
 	defer func() {
 		c.Close()
 		s.Clients.Map.Delete(id)
+		helpers.DeleteIdFromClientList(s.Clients, id)
 	}()
 
 	for {
@@ -45,7 +54,7 @@ func (s *Service) HandleUserConnection(id string, c net.Conn) {
 		}
 
 		s.Clients.Map.Range(func(key interface{}, value interface{}) bool {
-			if conn, ok := value.(net.Conn); ok {
+			if conn, ok := value.(*net.TCPConn); ok {
 				if err := s.SendMessageToClient(conn, userInput); err != nil {
 					s.Logger.Error("error on writing to connection", zap.Error(err))
 				}
