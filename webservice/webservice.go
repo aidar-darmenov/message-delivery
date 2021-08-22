@@ -14,7 +14,8 @@ func NewWebService(s interfaces.Service) interfaces.WebService {
 		Engine:  g,
 	}
 
-	g.GET("/clients/connected", ws.GetConnectedClientsIds)
+	g.GET("/clients/connected/ids", ws.GetConnectedClientsIds)
+	g.GET("/clients/connected", ws.GetConnectedClients)
 	g.POST("/clients/message", ws.SendMessageToClientsByIds)
 
 	return ws

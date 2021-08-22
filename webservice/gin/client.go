@@ -26,3 +26,13 @@ func (ws *GinWebService) SendMessageToClientsByIds(c *gin.Context) {
 
 	c.JSON(200, "ok")
 }
+
+func (ws *GinWebService) GetConnectedClients(c *gin.Context) {
+	clients := ws.Service.GetConnectedClients()
+	if len(clients) > 0 {
+		c.JSON(201, clients)
+	} else {
+		c.JSON(200, "No clients connected")
+	}
+
+}

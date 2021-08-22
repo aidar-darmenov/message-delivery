@@ -8,7 +8,7 @@ type Clients struct {
 }
 
 type ClientParams struct {
-	Id       string `json:"-"`
+	Id       string `json:"id"`
 	HttpPort int    `json:"http_port"`
 	Name     string `json:"name"`
 }

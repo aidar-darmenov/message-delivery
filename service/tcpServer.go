@@ -109,7 +109,7 @@ func (s *Service) GetClientParams(conn *net.TCPConn, id string) {
 	for i := range s.Clients.Params {
 		if s.Clients.Params[i].Id == id {
 			s.Clients.Params[i] = model.ClientParams{
-				Id:       params.Id,
+				Id:       id,
 				HttpPort: params.HttpPort,
 				Name:     params.Name,
 			}

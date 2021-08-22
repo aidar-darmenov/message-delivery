@@ -24,7 +24,8 @@ func NewService(cfg *config.Configuration, logger *zap.Logger) interfaces.Servic
 		Configuration: cfg,
 		Logger:        logger,
 		Clients: model.Clients{
-			Map: &sync.Map{},
+			Map:    &sync.Map{},
+			Params: []model.ClientParams{},
 		},
 		ChannelMessages: channelMessages,
 	}
